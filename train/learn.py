@@ -87,7 +87,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
     return LOSS,ACC,OBS
 
 
-def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None, alpha=1.0,skipHMC = True):
+def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None, alpha=None,skipHMC = True):
 
     def cleanSaving(epoch):
         if epoch >= keepSavings*saveSteps:
@@ -126,7 +126,11 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         x,sampleLogProbability = flow.sample(batchSize)
         lossorigin = (sampleLogProbability - source.logProbability(x))
         lossstd = lossorigin.std()
-        loss = (lossorigin.mean()+alpha*(sampleLogProbability.mean()-flow.logProbability(-x).mean()))
+        if alpha is None:
+            logq = torch.logaddexp(sampleLogProbability, flow.logProbability(-x)) - np.log(2)
+            loss = (logq - source.logProbability(x)).mean()
+        else:
+            loss = (lossorigin.mean()+alpha*(sampleLogProbability.mean()-flow.logProbability(-x).mean()))
         flow.zero_grad()
         loss.backward()
         optimizer.step()
