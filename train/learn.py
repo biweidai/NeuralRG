@@ -126,11 +126,12 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         x,sampleLogProbability = flow.sample(batchSize)
         lossorigin = (sampleLogProbability - source.logProbability(x))
         lossstd = lossorigin.std()
-        if alpha is None:
-            logq = torch.logaddexp(sampleLogProbability, flow.logProbability(-x)) - np.log(2)
-            loss = (logq - source.logProbability(x)).mean()
-        else:
-            loss = (lossorigin.mean()+alpha*(sampleLogProbability.mean()-flow.logProbability(-x).mean()))
+        #if alpha is None:
+        #    logq = torch.logaddexp(sampleLogProbability, flow.logProbability(-x)) - np.log(2)
+        #    loss = (logq - source.logProbability(x)).mean()
+        #else:
+        #    loss = (lossorigin.mean()+alpha*(sampleLogProbability.mean()-flow.logProbability(-x).mean()))
+        loss = lossorigin.mean()
         flow.zero_grad()
         loss.backward()
         optimizer.step()
@@ -139,7 +140,7 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
 
         del sampleLogProbability
 
-        print("epoch:",epoch, "L:",loss.item(),"F:",lossorigin.mean().item(),"+/-",lossstd.item())
+        print("epoch:",epoch, "L:",loss.item(),"+/-",lossstd.item())
         del lossorigin
 
         LOSS.append([loss.item(),lossstd.item()])
