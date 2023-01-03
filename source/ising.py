@@ -84,7 +84,7 @@ class Ising_x(Source):
     def __init__(self,L,d,T,eps=1e-4,name = None):
         if name is None:
             name = "Ising_l"+str(L)+"_d" +str(d)+"_t"+str(T)
-        super(Ising,self).__init__([L**d],name)
+        super(Ising_x,self).__init__([L**d],name)
         self.lattice = Hypercube(L, d, 'periodic')
         K = self.lattice.Adj/T
     
