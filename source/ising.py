@@ -78,3 +78,25 @@ class Ising(Source):
     def energy(self,x):
         return -(-0.5*(torch.mm(x.reshape(-1, self.nvars[0]),self.Kinv) * x.reshape(-1, self.nvars[0])).sum(dim=1) \
         + (torch.nn.Softplus()(2.*self.beta*x.reshape(-1, self.nvars[0])) - self.beta*x.reshape(-1, self.nvars[0]) - math.log(2.)).sum(dim=1))
+
+
+class Ising_x(Source):
+    def __init__(self,L,d,T,eps=1e-4,name = None):
+        if name is None:
+            name = "Ising_l"+str(L)+"_d" +str(d)+"_t"+str(T)
+        super(Ising,self).__init__([L**d],name)
+        self.lattice = Hypercube(L, d, 'periodic')
+        K = self.lattice.Adj/T
+    
+        w, v = eigh(K)
+        offset = eps - w.min()
+        K += np.eye(w.size)*offset
+        #sign, logdet = np.linalg.slogdet(self.K)
+        #print (sign)
+        #print (0.5*self.nvars[0] *(np.log(4.)-offset - np.log(2.*np.pi)) - 0.5*logdet)
+        self.register_buffer("K",torch.as_tensor(K).to(torch.float32))
+
+    def energy(self,x):
+        x = x.reshape(len(x), self.nvars[0])
+        Kx = torch.matmul(x, K)
+        return 0.5*(Kx * x).sum(dim=1) - (F.softplus(2.*Kx) - Kx - math.log(2.)).sum(dim=1)
