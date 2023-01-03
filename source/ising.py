@@ -98,5 +98,5 @@ class Ising_x(Source):
 
     def energy(self,x):
         x = x.reshape(len(x), self.nvars[0])
-        Kx = torch.matmul(x, K)
+        Kx = torch.matmul(x, self.K)
         return 0.5*(Kx * x).sum(dim=1) - (F.softplus(2.*Kx) - Kx - math.log(2.)).sum(dim=1)
